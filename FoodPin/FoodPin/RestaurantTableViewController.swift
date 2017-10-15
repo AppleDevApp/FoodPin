@@ -68,7 +68,7 @@ class RestaurantTableViewController: UITableViewController {
             cell.typeLabel.text = restaurantTypes[indexPath.row]
             cell.serialNum.text = String(indexPath.row)
             cell.accessoryType = self.checkedIndexPath.contains(indexPath) ? .checkmark : .none
-
+            
             
             return cell;
         }
@@ -77,17 +77,29 @@ class RestaurantTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         // Show Alert View
         let alertController = UIAlertController(title: "What do you want to do?", message: nil, preferredStyle: .actionSheet)
-        alertController.addAction(UIAlertAction(title: "Call 123-456-789", style: .default, handler: nil))
+        alertController.addAction(UIAlertAction(title: "Call 123-456-789", style: .default, handler: {(alertController:UIAlertAction) in
+            // In simulate,We can't telephone
+            let mobileUrl = URL(string: "tel://10000")
+            if !UIApplication.shared.canOpenURL(mobileUrl!) {
+                print("Open Phone Failed")
+                let alertController = UIAlertController(title: "Service Unavailable", message: "Sorry,In Your Iphone Could Not Telephone A Number", preferredStyle: .alert)
+                alertController.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+                self.present(alertController, animated: true, completion: nil)
+                return
+            }
+            
+            UIApplication.shared.open(mobileUrl!, options: [:], completionHandler: nil)
+        }))
         alertController.addAction(UIAlertAction(title: "Check in", style: .default, handler: { (alertAction:UIAlertAction) in
             // Check the row selected
             print("Selected At Row index \(indexPath.row)")
-            let selectedCell = tableView.cellForRow(at: indexPath)!
-            if selectedCell.accessoryType == .none {
-                selectedCell.accessoryType = .checkmark
-                self.checkedIndexPath.insert(indexPath)
-            } else {
-                selectedCell.accessoryType = .none
+            let selectedCell = tableView.cellForRow(at: indexPath)
+            if self.checkedIndexPath.contains(indexPath) {
+                selectedCell?.accessoryType = .none
                 self.checkedIndexPath.remove(indexPath)
+            } else {
+                selectedCell?.accessoryType = .checkmark
+                self.checkedIndexPath.insert(indexPath)
             }
         }))
         alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
